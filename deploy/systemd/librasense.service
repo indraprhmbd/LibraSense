@@ -1,0 +1,23 @@
+[Unit]
+Description=LibraSense API dan panel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+# The container is foreground; systemd owns the lifecycle.
+ExecStartPre=-/usr/bin/podman rm -f librasense
+ExecStart=/usr/bin/podman run --name librasense \
+  --memory=128m --memory-swap=160m \
+  -p 127.0.0.1:8097:8097 \
+  --env-file /home/librasense/.env \
+  -v /home/librasense/data:/data:Z \
+  localhost/librasense:latest
+ExecStop=/usr/bin/podman stop -t 10 librasense
+Restart=always
+RestartSec=10
+TimeoutStartSec=120
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

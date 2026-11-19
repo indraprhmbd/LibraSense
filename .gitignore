@@ -1,0 +1,14 @@
+/bin/
+/data/
+/dist/
+/tmp/
+.env
+.env.*
+!.env.example
+*.log
+*.exe
+/librasense
+esp32/**/secrets.h
+tools/dbprobe/
+
+

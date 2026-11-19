@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>LibraSense</title>
+    <link rel="stylesheet" href="/app.css" />
+    <script defer src="/app.js"></script>
+    <script defer src="/vendor/alpine.min.js"></script>
+  </head>
+
+  <body x-data="panelApp()" x-cloak class="app-wrap">
+
+    <!-- ============ Header ============ -->
+    <header class="header">
+      <div class="container">
+        <div class="header-inner">
+
+          <div class="logo">
+            LibraSense
+            <span class="logo-sub">Pemantauan Perpustakaan</span>
+          </div>
+
+          <div class="status-badge">
+            <span
+              class="status-dot"
+              :class="{ online: online() }"
+              aria-hidden="true"
+            ></span>
+            <span x-text="online() ? 'Perangkat daring' : 'Perangkat luring'"></span>
+          </div>
+
+          <nav class="nav-tabs" aria-label="Navigasi panel">
+            <button
+              type="button"
+              class="nav-tab"
+              :aria-current="tab === 'dasbor' ? 'page' : undefined"
+              @click="tab = 'dasbor'"
+            >Dasbor</button>
+            <button
+              type="button"
+              class="nav-tab"
+              :aria-current="tab === 'pengaturan' ? 'page' : undefined"
+              @click="tab = 'pengaturan'"
+            >Pengaturan</button>
+          </nav>
+
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ Main ============ -->
+    <main class="page-content" id="main-content">
+      <div class="container">
+
+        <!-- Error banner -->
+        <div class="alert" role="alert" x-show="error" x-text="error"></div>
+
+        <!-- ======== Tab: Dasbor ======== -->
+        <div x-show="tab === 'dasbor'">
+
+          <!-- Device stats row -->
+          <p class="section-label">Status perangkat</p>
+          <div class="grid grid-auto-sm">
+
+            <div class="stat-card">
+              <div class="stat-value" x-text="online() ? 'Daring' : 'Luring'"></div>
+              <div class="stat-label">
+                Terakhir terlihat
+                <span x-text="relative(device() && device().lastSeenAt)"></span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" x-text="(device() && device().firmware) || '-'"></div>
+              <div class="stat-label">Versi firmware</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" x-text="(device() && device().ip) || '-'"></div>
+              <div class="stat-label">Alamat IP lokal</div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-value" x-text="pending()"></div>
+              <div class="stat-label">Perintah menunggu</div>
+            </div>
+
+          </div>
+
+          <!-- Floor plan slot: Denah maket perpustakaan -->
+          <p class="section-label">Denah perpustakaan</p>
+          <div class="floorplan-slot" id="floorplan" aria-label="Denah perpustakaan">
+            <svg class="floorplan-svg" viewBox="0 0 880 720" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="tileGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#ece7df" />
+                  <stop offset="100%" stop-color="#e2dcd2" />
+                </linearGradient>
+
+                <linearGradient id="cardboardFloor" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#cf9f67" />
+                  <stop offset="100%" stop-color="#c5945c" />
+                </linearGradient>
+
+                <linearGradient id="cardboardFlap" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#b88651" />
+                  <stop offset="100%" stop-color="#cda06d" />
+                </linearGradient>
+
+                <linearGradient id="tableTop" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#dfb482" />
+                  <stop offset="100%" stop-color="#be8c55" />
+                </linearGradient>
+
+                <!-- Pola tepi kardus bergelombang -->
+                <pattern id="corrugationH" width="8" height="12" patternUnits="userSpaceOnUse">
+                  <path d="M0,6 Q2,0 4,6 T8,6" fill="none" stroke="#8d5f30" stroke-width="1.2" />
+                  <line x1="0" y1="0" x2="8" y2="0" stroke="#a4723e" stroke-width="0.8" />
+                  <line x1="0" y1="12" x2="8" y2="12" stroke="#a4723e" stroke-width="0.8" />
+                </pattern>
+
+                <pattern id="corrugationV" width="12" height="8" patternUnits="userSpaceOnUse">
+                  <path d="M6,0 Q0,2 6,4 T6,8" fill="none" stroke="#8d5f30" stroke-width="1.2" />
+                  <line x1="0" y1="0" x2="0" y2="8" stroke="#a4723e" stroke-width="0.8" />
+                  <line x1="12" y1="0" x2="12" y2="8" stroke="#a4723e" stroke-width="0.8" />
+                </pattern>
+
+                <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="5" flood-opacity="0.18" />
+                </filter>
+                <filter id="cardShadow" x="-10%" y="-10%" width="125%" height="125%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.22" />
+                </filter>
+              </defs>
+
+              <!-- Lantai keramik di luar maket -->
+              <rect width="880" height="720" fill="url(#tileGrad)" />
+              <line x1="0" y1="240" x2="880" y2="240" stroke="#d5cebe" stroke-width="2" />
+              <line x1="0" y1="480" x2="880" y2="480" stroke="#d5cebe" stroke-width="2" />
+              <line x1="220" y1="0" x2="220" y2="720" stroke="#d5cebe" stroke-width="2" />
+              <line x1="440" y1="0" x2="440" y2="720" stroke="#d5cebe" stroke-width="2" />
+              <line x1="660" y1="0" x2="660" y2="720" stroke="#d5cebe" stroke-width="2" />
+
+              <!-- Tutup kardus yang terbuka keluar (Flaps) -->
+              <polygon points="60,90 130,120 130,550 60,590" fill="url(#cardboardFlap)" stroke="#a16f3c" stroke-width="1.5" />
+              <polygon points="820,90 750,120 750,550 820,590" fill="url(#cardboardFlap)" stroke="#a16f3c" stroke-width="1.5" />
+              <polygon points="120,40 760,40 740,110 140,110" fill="url(#cardboardFlap)" stroke="#a16f3c" stroke-width="1.5" />
+              <!-- Tutup bawah yang terbuka datar di depan pintu -->
+              <polygon points="120,580 760,580 780,680 100,680" fill="url(#cardboardFlap)" stroke="#a16f3c" stroke-width="1.5" filter="url(#shadow)" />
+              <line x1="120" y1="580" x2="760" y2="580" stroke="#7a5028" stroke-width="2" stroke-dasharray="6 3" />
+
+              <!-- Lantai dasar kotak maket -->
+              <rect x="130" y="110" width="620" height="470" rx="2" fill="url(#cardboardFloor)" filter="url(#shadow)" />
+
+              <!-- Lapisan lantai interaktif per ruang (bereaksi terhadap status) -->
+              <rect class="floorplan-room" :class="{ hot: rack(1).hot, noisy: rack(1).noisy }" x="150" y="130" width="280" height="430" fill="#d2a36d" />
+              <rect class="floorplan-room" :class="{ hot: rack(2).hot, noisy: rack(2).noisy }" x="444" y="130" width="286" height="196" fill="#cca06a" />
+              <rect class="floorplan-room" :class="{ hot: rack(3).hot, noisy: rack(3).noisy }" x="444" y="340" width="286" height="220" fill="#cca06a" />
+
+              <!-- Dinding luar kotak -->
+              <rect x="130" y="110" width="620" height="20" fill="#aa7743" />
+              <rect x="130" y="110" width="620" height="6" fill="url(#corrugationH)" opacity="0.9" />
+
+              <rect x="130" y="110" width="20" height="470" fill="#a06e3a" />
+              <rect x="130" y="110" width="6" height="470" fill="url(#corrugationV)" opacity="0.9" />
+
+              <rect x="730" y="110" width="20" height="470" fill="#a06e3a" />
+              <rect x="744" y="110" width="6" height="470" fill="url(#corrugationV)" opacity="0.9" />
+
+              <!-- Sekat vertikal antara Ruang Utama dan Ruang Buku (dengan pintu lorong) -->
+              <!-- Bagian atas -->
+              <rect x="430" y="110" width="14" height="110" fill="#a67440" />
+              <rect x="430" y="110" width="14" height="6" fill="url(#corrugationH)" />
+              <!-- Bagian tengah (temu sekat horizontal) -->
+              <rect x="430" y="275" width="14" height="130" fill="#a67440" />
+              <rect x="430" y="275" width="14" height="6" fill="url(#corrugationH)" />
+              <!-- Bagian bawah -->
+              <rect x="430" y="465" width="14" height="115" fill="#a67440" />
+              <rect x="430" y="465" width="14" height="6" fill="url(#corrugationH)" />
+
+              <!-- Sekat horizontal antara Ruang Buku 1 & Ruang Buku 2 -->
+              <rect x="444" y="326" width="286" height="14" fill="#a67440" />
+              <rect x="444" y="326" width="286" height="6" fill="url(#corrugationH)" />
+
+              <!-- Dinding depan: Sayap kiri (dengan 2 garis biru khas maket) -->
+              <g>
+                <rect x="130" y="560" width="180" height="30" fill="#b9854f" stroke="#8d5f30" stroke-width="1.5" />
+                <rect x="130" y="560" width="180" height="6" fill="url(#corrugationH)" />
+                <rect x="165" y="566" width="18" height="24" fill="#2563eb" rx="1" />
+                <rect x="235" y="566" width="18" height="24" fill="#2563eb" rx="1" />
+              </g>
+
+              <!-- Dinding depan: Sayap kanan (dengan 2 garis biru) -->
+              <g>
+                <rect x="530" y="560" width="220" height="30" fill="#b9854f" stroke="#8d5f30" stroke-width="1.5" />
+                <rect x="530" y="560" width="220" height="6" fill="url(#corrugationH)" />
+                <rect x="625" y="566" width="18" height="24" fill="#2563eb" rx="1" />
+                <rect x="695" y="566" width="18" height="24" fill="#2563eb" rx="1" />
+              </g>
+
+              <!-- Pintu Masuk di tengah -->
+              <g filter="url(#cardShadow)">
+                <rect x="360" y="566" width="130" height="26" fill="#ffffff" rx="3" stroke="#dedad3" stroke-width="1.5" />
+                <text x="425" y="583" font-size="12" font-weight="700" fill="#111613" text-anchor="middle" letter-spacing="0.5">Pintu Masuk</text>
+              </g>
+
+              <!-- FURNITUR RUANG UTAMA (PERPUSTAKAAN) -->
+              <!-- Rak buku 1 (Kiri Atas) -->
+              <g filter="url(#cardShadow)">
+                <rect x="150" y="145" width="46" height="120" fill="#bd8951" stroke="#8c5f30" stroke-width="1.2" rx="2" />
+                <line x1="150" y1="185" x2="196" y2="185" stroke="#784f24" stroke-width="2" />
+                <line x1="150" y1="225" x2="196" y2="225" stroke="#784f24" stroke-width="2" />
+                <!-- Buku baris 1 -->
+                <rect x="153" y="148" width="6" height="34" fill="#dc2626" rx="1" />
+                <rect x="160" y="150" width="8" height="32" fill="#2563eb" rx="1" />
+                <rect x="169" y="149" width="7" height="33" fill="#eab308" rx="1" />
+                <rect x="177" y="151" width="8" height="31" fill="#16a34a" rx="1" />
+                <rect x="186" y="148" width="7" height="34" fill="#9333ea" rx="1" />
+                <!-- Buku baris 2 -->
+                <rect x="153" y="188" width="8" height="34" fill="#0284c7" rx="1" />
+                <rect x="162" y="189" width="7" height="33" fill="#ea580c" rx="1" />
+                <rect x="170" y="187" width="8" height="35" fill="#facc15" rx="1" />
+                <rect x="179" y="189" width="7" height="33" fill="#db2777" rx="1" />
+                <rect x="187" y="188" width="6" height="34" fill="#059669" rx="1" />
+                <!-- Buku baris 3 -->
+                <rect x="153" y="228" width="7" height="34" fill="#4f46e5" rx="1" />
+                <rect x="161" y="227" width="8" height="35" fill="#ca8a04" rx="1" />
+                <rect x="170" y="229" width="7" height="33" fill="#e11d48" rx="1" />
+                <rect x="178" y="228" width="8" height="34" fill="#0891b2" rx="1" />
+                <rect x="187" y="229" width="6" height="33" fill="#7c3aed" rx="1" />
+              </g>
+
+              <!-- Rak buku 2 (Kiri Bawah) -->
+              <g filter="url(#cardShadow)">
+                <rect x="150" y="340" width="46" height="130" fill="#bd8951" stroke="#8c5f30" stroke-width="1.2" rx="2" />
+                <line x1="150" y1="382" x2="196" y2="382" stroke="#784f24" stroke-width="2" />
+                <line x1="150" y1="426" x2="196" y2="426" stroke="#784f24" stroke-width="2" />
+                <!-- Buku baris 1 -->
+                <rect x="153" y="343" width="7" height="36" fill="#0d9488" rx="1" />
+                <rect x="161" y="345" width="8" height="34" fill="#e11d48" rx="1" />
+                <rect x="170" y="344" width="6" height="35" fill="#2563eb" rx="1" />
+                <rect x="177" y="343" width="9" height="36" fill="#f59e0b" rx="1" />
+                <rect x="187" y="346" width="6" height="33" fill="#84cc16" rx="1" />
+                <!-- Buku baris 2 -->
+                <rect x="153" y="385" width="8" height="38" fill="#ec4899" rx="1" />
+                <rect x="162" y="387" width="7" height="36" fill="#3b82f6" rx="1" />
+                <rect x="170" y="384" width="7" height="39" fill="#10b981" rx="1" />
+                <rect x="178" y="386" width="8" height="37" fill="#f97316" rx="1" />
+                <rect x="187" y="388" width="6" height="35" fill="#a855f7" rx="1" />
+                <!-- Buku baris 3 -->
+                <rect x="153" y="429" width="7" height="38" fill="#f43f5e" rx="1" />
+                <rect x="161" y="430" width="8" height="37" fill="#06b6d4" rx="1" />
+                <rect x="170" y="428" width="6" height="39" fill="#eab308" rx="1" />
+                <rect x="177" y="431" width="8" height="36" fill="#6366f1" rx="1" />
+                <rect x="186" y="430" width="7" height="37" fill="#14b8a6" rx="1" />
+              </g>
+
+              <!-- Meja & Kursi Belajar (Tengah Bawah) -->
+              <g filter="url(#cardShadow)">
+                <rect x="235" y="420" width="22" height="42" fill="#b07d46" stroke="#875b2b" stroke-width="1.2" rx="3" />
+                <rect x="232" y="428" width="5" height="26" fill="#875b2b" rx="1" />
+                <rect x="345" y="420" width="22" height="42" fill="#b07d46" stroke="#875b2b" stroke-width="1.2" rx="3" />
+                <rect x="365" y="428" width="5" height="26" fill="#875b2b" rx="1" />
+                <rect x="264" y="395" width="74" height="92" fill="url(#tableTop)" stroke="#875b2b" stroke-width="1.5" rx="4" />
+                <rect x="266" y="397" width="70" height="88" fill="none" stroke="#e8caa4" stroke-width="1" rx="3" />
+              </g>
+
+              <!-- Kertas Label Maket: Ruang Utama (Perpustakaan) -->
+              <g filter="url(#cardShadow)">
+                <rect x="230" y="160" width="145" height="48" fill="#ffffff" rx="3" stroke="#dedad3" stroke-width="1.5" />
+                <text x="302" y="180" font-size="12" font-weight="700" fill="#111613" text-anchor="middle">Ruang Utama</text>
+                <text x="302" y="196" font-size="10.5" font-weight="600" fill="#55655e" text-anchor="middle">(Perpustakaan)</text>
+              </g>
+
+              <!-- HUD Data Sensor Langsung: Ruang Utama / Ruang Baca (Rak 1) -->
+              <g class="floorplan-hud" filter="url(#cardShadow)">
+                <rect x="215" y="222" width="175" height="76" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#0d9488" stroke-width="1.5" />
+                <circle cx="232" cy="240" r="5" :fill="rack(1).ok ? (rack(1).hot ? '#ea580c' : '#10b981') : '#9ca3af'" />
+                <text x="244" y="244" font-size="12" font-weight="700" fill="#0f766e" x-text="rack(1).label"></text>
+                <rect x="338" y="231" width="44" height="17" rx="4" :fill="rack(1).ok ? (rack(1).hot ? '#ffedd5' : '#ccfbf1') : '#f3f4f6'" />
+                <text x="360" y="243" font-size="10" font-weight="700" :fill="rack(1).ok ? (rack(1).hot ? '#c2410c' : '#0f766e') : '#6b7280'" text-anchor="middle" x-text="rack(1).ok ? (rack(1).hot ? 'Panas' : 'Normal') : 'Luring'"></text>
+
+                <text x="230" y="267" font-size="11" fill="#4b5563">Suhu: <tspan font-weight="700" fill="#111827" x-text="rack(1).temperature !== null ? rack(1).temperature.toFixed(1) + '°C' : '--'"></tspan></text>
+                <text x="312" y="267" font-size="11" fill="#4b5563">Lembap: <tspan font-weight="700" fill="#111827" x-text="rack(1).humidity !== null ? rack(1).humidity + '%' : '--'"></tspan></text>
+                <text x="230" y="286" font-size="11" fill="#4b5563">Kebisingan: <tspan font-weight="700" fill="#111827" x-text="rack(1).noise !== null ? rack(1).noise : '--'"></tspan><tspan x-show="rack(1).noisy" fill="#c2410c" font-weight="700"> (berisik)</tspan></text>
+              </g>
+
+              <!-- FURNITUR RUANG BUKU 1 -->
+              <!-- Rak buku di dinding kanan -->
+              <g filter="url(#cardShadow)">
+                <rect x="684" y="145" width="46" height="110" fill="#bd8951" stroke="#8c5f30" stroke-width="1.2" rx="2" />
+                <line x1="684" y1="182" x2="730" y2="182" stroke="#784f24" stroke-width="2" />
+                <line x1="684" y1="218" x2="730" y2="218" stroke="#784f24" stroke-width="2" />
+                <rect x="687" y="148" width="7" height="32" fill="#2563eb" rx="1" />
+                <rect x="695" y="149" width="8" height="31" fill="#dc2626" rx="1" />
+                <rect x="704" y="147" width="6" height="33" fill="#eab308" rx="1" />
+                <rect x="711" y="150" width="8" height="30" fill="#16a34a" rx="1" />
+                <rect x="720" y="148" width="7" height="32" fill="#9333ea" rx="1" />
+                <rect x="687" y="184" width="8" height="32" fill="#f97316" rx="1" />
+                <rect x="696" y="186" width="7" height="30" fill="#06b6d4" rx="1" />
+                <rect x="704" y="183" width="8" height="33" fill="#ec4899" rx="1" />
+                <rect x="713" y="185" width="7" height="31" fill="#84cc16" rx="1" />
+                <rect x="721" y="184" width="6" height="32" fill="#6366f1" rx="1" />
+                <rect x="687" y="220" width="7" height="33" fill="#0d9488" rx="1" />
+                <rect x="695" y="221" width="8" height="32" fill="#e11d48" rx="1" />
+                <rect x="704" y="219" width="7" height="34" fill="#3b82f6" rx="1" />
+                <rect x="712" y="222" width="7" height="31" fill="#ca8a04" rx="1" />
+                <rect x="720" y="220" width="7" height="33" fill="#a855f7" rx="1" />
+              </g>
+
+              <!-- Kertas Label Maket: Ruang Buku 1 -->
+              <g filter="url(#cardShadow)">
+                <rect x="520" y="148" width="110" height="42" fill="#ffffff" rx="3" stroke="#dedad3" stroke-width="1.5" />
+                <text x="575" y="166" font-size="12" font-weight="700" fill="#111613" text-anchor="middle">Ruang</text>
+                <text x="575" y="181" font-size="12" font-weight="700" fill="#111613" text-anchor="middle">Buku 1</text>
+              </g>
+
+              <!-- HUD Data Sensor Langsung: Ruang Buku 1 / Ruang Rak 1 (Rak 2) -->
+              <g class="floorplan-hud" filter="url(#cardShadow)">
+                <rect x="475" y="206" width="175" height="76" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#f97316" stroke-width="1.5" />
+                <circle cx="492" cy="224" r="5" :fill="rack(2).ok ? (rack(2).hot ? '#ea580c' : '#10b981') : '#9ca3af'" />
+                <text x="504" y="228" font-size="12" font-weight="700" fill="#c2410c" x-text="rack(2).label"></text>
+                <rect x="598" y="215" width="44" height="17" rx="4" :fill="rack(2).ok ? (rack(2).hot ? '#ffedd5' : '#ccfbf1') : '#f3f4f6'" />
+                <text x="620" y="227" font-size="10" font-weight="700" :fill="rack(2).ok ? (rack(2).hot ? '#c2410c' : '#0f766e') : '#6b7280'" text-anchor="middle" x-text="rack(2).ok ? (rack(2).hot ? 'Panas' : 'Normal') : 'Luring'"></text>
+
+                <text x="490" y="251" font-size="11" fill="#4b5563">Suhu: <tspan font-weight="700" fill="#111827" x-text="rack(2).temperature !== null ? rack(2).temperature.toFixed(1) + '°C' : '--'"></tspan></text>
+                <text x="572" y="251" font-size="11" fill="#4b5563">Lembap: <tspan font-weight="700" fill="#111827" x-text="rack(2).humidity !== null ? rack(2).humidity + '%' : '--'"></tspan></text>
+                <text x="490" y="270" font-size="11" fill="#4b5563">Kebisingan: <tspan font-weight="700" fill="#111827" x-text="rack(2).noise !== null ? rack(2).noise : '--'"></tspan><tspan x-show="rack(2).noisy" fill="#c2410c" font-weight="700"> (berisik)</tspan></text>
+              </g>
+
+              <!-- FURNITUR RUANG BUKU 2 -->
+              <!-- Rak buku di dinding kanan -->
+              <g filter="url(#cardShadow)">
+                <rect x="684" y="375" width="46" height="120" fill="#bd8951" stroke="#8c5f30" stroke-width="1.2" rx="2" />
+                <line x1="684" y1="415" x2="730" y2="415" stroke="#784f24" stroke-width="2" />
+                <line x1="684" y1="455" x2="730" y2="455" stroke="#784f24" stroke-width="2" />
+                <rect x="687" y="378" width="8" height="34" fill="#e11d48" rx="1" />
+                <rect x="696" y="380" width="7" height="32" fill="#2563eb" rx="1" />
+                <rect x="704" y="377" width="8" height="35" fill="#facc15" rx="1" />
+                <rect x="713" y="379" width="7" height="33" fill="#10b981" rx="1" />
+                <rect x="721" y="378" width="6" height="34" fill="#a855f7" rx="1" />
+                <rect x="687" y="418" width="7" height="35" fill="#0284c7" rx="1" />
+                <rect x="695" y="420" width="8" height="33" fill="#ea580c" rx="1" />
+                <rect x="704" y="417" width="7" height="36" fill="#84cc16" rx="1" />
+                <rect x="712" y="419" width="8" height="34" fill="#ec4899" rx="1" />
+                <rect x="721" y="418" width="6" height="35" fill="#6366f1" rx="1" />
+                <rect x="687" y="458" width="8" height="35" fill="#0d9488" rx="1" />
+                <rect x="696" y="459" width="7" height="34" fill="#eab308" rx="1" />
+                <rect x="704" y="457" width="8" height="36" fill="#dc2626" rx="1" />
+                <rect x="713" y="460" width="7" height="33" fill="#3b82f6" rx="1" />
+                <rect x="721" y="458" width="6" height="35" fill="#9333ea" rx="1" />
+              </g>
+
+              <!-- Kertas Label Maket: Ruang Buku 2 -->
+              <g filter="url(#cardShadow)">
+                <rect x="520" y="370" width="110" height="42" fill="#ffffff" rx="3" stroke="#dedad3" stroke-width="1.5" />
+                <text x="575" y="388" font-size="12" font-weight="700" fill="#111613" text-anchor="middle">Ruang</text>
+                <text x="575" y="403" font-size="12" font-weight="700" fill="#111613" text-anchor="middle">Buku 2</text>
+              </g>
+
+              <!-- HUD Data Sensor Langsung: Ruang Buku 2 / Ruang Rak 2 (Rak 3) -->
+              <g class="floorplan-hud" filter="url(#cardShadow)">
+                <rect x="475" y="430" width="175" height="76" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#6366f1" stroke-width="1.5" />
+                <circle cx="492" cy="448" r="5" :fill="rack(3).ok ? (rack(3).hot ? '#ea580c' : '#10b981') : '#9ca3af'" />
+                <text x="504" y="452" font-size="12" font-weight="700" fill="#4338ca" x-text="rack(3).label"></text>
+                <rect x="598" y="439" width="44" height="17" rx="4" :fill="rack(3).ok ? (rack(3).hot ? '#ffedd5' : '#ccfbf1') : '#f3f4f6'" />
+                <text x="620" y="451" font-size="10" font-weight="700" :fill="rack(3).ok ? (rack(3).hot ? '#c2410c' : '#0f766e') : '#6b7280'" text-anchor="middle" x-text="rack(3).ok ? (rack(3).hot ? 'Panas' : 'Normal') : 'Luring'"></text>
+
+                <text x="490" y="475" font-size="11" fill="#4b5563">Suhu: <tspan font-weight="700" fill="#111827" x-text="rack(3).temperature !== null ? rack(3).temperature.toFixed(1) + '°C' : '--'"></tspan></text>
+                <text x="572" y="475" font-size="11" fill="#4b5563">Lembap: <tspan font-weight="700" fill="#111827" x-text="rack(3).humidity !== null ? rack(3).humidity + '%' : '--'"></tspan></text>
+                <text x="490" y="494" font-size="11" fill="#4b5563">Kebisingan: <tspan font-weight="700" fill="#111827" x-text="rack(3).noise !== null ? rack(3).noise : '--'"></tspan><tspan x-show="rack(3).noisy" fill="#c2410c" font-weight="700"> (berisik)</tspan></text>
+              </g>
+
+              <!-- Penunjuk Arah Mata Angin -->
+              <g transform="translate(155, 520)" opacity="0.75">
+                <circle cx="16" cy="16" r="14" fill="#ffffff" stroke="#dedad3" stroke-width="1" />
+                <polygon points="16,5 20,16 16,14 12,16" fill="#0d9488" />
+                <polygon points="16,27 20,16 16,18 12,16" fill="#9ca3af" />
+                <text x="16" y="4" font-size="8" font-weight="700" fill="#0d9488" text-anchor="middle">U</text>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Rack cards -->
+          <p class="section-label">Kondisi ruang</p>
+          <div class="grid grid-auto">
+            <template x-for="rack in racks()" :key="rack.rack">
+              <div
+                class="rack-card"
+                :class="{ hot: rack.hot, offline: !rack.ok }"
+              >
+                <div class="rack-header">
+                  <span class="rack-name" x-text="rack.label"></span>
+                  <span
+                    class="badge"
+                    :class="rack.ok ? (rack.hot ? 'badge-warn' : 'badge-ok') : 'badge-off'"
+                    x-text="rack.ok ? (rack.hot ? 'Panas' : 'Normal') : 'Gagal baca'"
+                  ></span>
+                </div>
+
+                <div class="rack-temp">
+                  <span x-text="rack.temperature === null ? '--' : rack.temperature.toFixed(1)"></span>
+                  <sup>&#176;C</sup>
+                </div>
+
+                <div class="rack-bar-track">
+                  <div
+                    class="rack-bar-fill"
+                    :style="`width:${barWidth(rack.temperature)}%`"
+                    role="progressbar"
+                    :aria-valuenow="rack.temperature"
+                    aria-valuemin="0"
+                    aria-valuemax="50"
+                  ></div>
+                </div>
+
+                <div class="rack-meta">
+                  <span class="rack-meta-item">
+                    Lembap
+                    <strong x-text="rack.humidity === null ? '--' : rack.humidity + '%'"></strong>
+                  </span>
+                  <span class="rack-meta-item">
+                    Kebisingan
+                    <strong x-text="rack.noise === null ? '--' : rack.noise"></strong>
+                    <span x-show="rack.noisy" class="text-warn">(berisik)</span>
+                  </span>
+                  <span class="rack-meta-item">
+                    Ambang <strong x-text="rack.threshold + '\u00b0C'"></strong>
+                  </span>
+                </div>
+              </div>
+            </template>
+
+            <p
+              class="text-muted text-sm"
+              x-show="racks().length === 0"
+            >Menunggu data dari perangkat.</p>
+          </div>
+
+          <!-- Actuator decisions -->
+          <p class="section-label">Keputusan server</p>
+          <div class="card card-pad">
+            <div class="actuator-row">
+              <span class="actuator-label">Kipas (relay 12V)</span>
+              <span
+                class="actuator-value"
+                :class="desired() && desired().fan ? 'on' : 'off'"
+                x-text="fanText()"
+              ></span>
+            </div>
+            <div class="actuator-row">
+              <span class="actuator-label">Buzzer aktif</span>
+              <span class="actuator-value" x-text="buzzerText()"></span>
+            </div>
+            <div class="actuator-row">
+              <span class="actuator-label">Konfirmasi perangkat</span>
+              <span
+                class="actuator-value"
+                :class="confirmed() ? 'on' : 'off'"
+                x-text="confirmed() ? 'Sesuai' : 'Menunggu'"
+              ></span>
+            </div>
+          </div>
+
+          <!-- Temperature history chart -->
+          <p class="section-label">Riwayat suhu</p>
+          <div class="chart-wrap" x-html="chartHtml()"></div>
+
+          <!-- Commands -->
+          <p class="section-label">Perintah</p>
+          <div class="cmd-grid">
+            <template x-for="item in commands" :key="item.command">
+              <button
+                type="button"
+                class="cmd-btn"
+                :disabled="busy"
+                @click="send(item.command)"
+                x-text="item.label"
+              ></button>
+            </template>
+          </div>
+
+          <!-- Raw sensor readings -->
+          <p class="section-label">Pembacaan sensor terakhir</p>
+          <div class="card">
+            <template x-for="sensor in sensors()" :key="sensor.id">
+              <div class="sensor-row" :class="{ error: !sensor.ok }">
+                <div>
+                  <div class="sensor-label fw-600" x-text="sensor.label || sensor.id"></div>
+                  <div class="sensor-type">
+                    <span x-text="sensor.type"></span>
+                    <span x-show="sensor.rack"> - ruang <span x-text="sensor.rack"></span></span>
+                  </div>
+                </div>
+                <div class="sensor-val">
+                  <span x-text="sensor.value === null || sensor.value === undefined ? '--' : sensor.value"></span>
+                  <span x-show="sensor.unit" x-text="' ' + (sensor.unit || '')"></span>
+                </div>
+              </div>
+            </template>
+            <p
+              class="text-muted text-sm"
+              style="padding:12px 16px"
+              x-show="sensors().length === 0"
+            >Belum ada pembacaan.</p>
+          </div>
+          <p class="text-muted text-xs mt-2" x-show="reading() && reading().ts">
+            Pembacaan terakhir: <span x-text="stamp(reading() && reading().ts)"></span>
+          </p>
+
+        </div><!-- end tab:dasbor -->
+
+        <!-- ======== Tab: Pengaturan ======== -->
+        <div x-show="tab === 'pengaturan'">
+
+          <p class="section-label">Pengaturan sistem</p>
+          <p class="text-muted text-sm mt-2" style="margin-bottom:var(--space-4)">
+            Perangkat hanya membaca sensor dan menjalankan perintah.
+            Semua ambang dan keputusan aktuator dihitung di server.
+          </p>
+
+          <form class="card card-pad-lg" @submit.prevent="save()">
+
+            <p class="section-label" style="margin-top:0">Ambang suhu</p>
+            <div class="form-grid">
+              <div class="form-field">
+                <label class="form-label" for="f-b1">Batas Ruang Baca (&#176;C)</label>
+                <input id="f-b1" class="form-input" type="number" step="0.5" min="0" max="60" x-model.number="form.b1" />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="f-b2">Batas Ruang Rak 1 (&#176;C)</label>
+                <input id="f-b2" class="form-input" type="number" step="0.5" min="0" max="60" x-model.number="form.b2" />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="f-b3">Batas Ruang Rak 2 (&#176;C)</label>
+                <input id="f-b3" class="form-input" type="number" step="0.5" min="0" max="60" x-model.number="form.b3" />
+              </div>
+            </div>
+
+            <p class="section-label">Kipas dan polling</p>
+            <div class="form-grid">
+              <div class="form-field">
+                <label class="form-label" for="f-hys">Histeresis kipas (&#176;C)</label>
+                <input id="f-hys" class="form-input" type="number" step="0.5" min="0" max="10" x-model.number="form.hys" />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="f-iv">Interval baca (ms)</label>
+                <input id="f-iv" class="form-input" type="number" step="500" min="5000" max="60000" x-model.number="form.iv" />
+              </div>
+              <div class="form-field">
+                <label class="form-label" for="f-fm">Mode kipas</label>
+                <select id="f-fm" class="form-select" x-model.number="form.fm">
+                  <option value="0">Otomatis</option>
+                  <option value="1">Selalu nyala</option>
+                  <option value="2">Selalu mati</option>
+                </select>
+              </div>
+            </div>
+
+            <p class="section-label">Alarm</p>
+            <div class="form-field">
+              <label class="form-label" for="f-bs">Ambang kebisingan (ADC 0-4095)</label>
+              <input id="f-bs" class="form-input" type="number" step="10" min="0" max="4095" x-model.number="form.bs" />
+            </div>
+
+            <div class="toggle-row mt-3">
+              <span class="toggle-label">Alarm suhu (buzzer per ruang)</span>
+              <input type="checkbox" class="toggle" id="f-al" x-model="form.al" aria-label="Alarm suhu" />
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Buzzer juga saat berisik</span>
+              <input type="checkbox" class="toggle" id="f-na" x-model="form.na" aria-label="Alarm kebisingan" />
+            </div>
+
+            <p class="section-label">Buzzer per ruang</p>
+            <div class="toggle-row" style="margin-top:0">
+              <label class="toggle-label" for="f-m1">Buzzer Ruang Baca</label>
+              <input type="checkbox" class="toggle" id="f-m1" x-model="form.m1" />
+            </div>
+            <div class="toggle-row">
+              <label class="toggle-label" for="f-m2">Buzzer Ruang Rak 1</label>
+              <input type="checkbox" class="toggle" id="f-m2" x-model="form.m2" />
+            </div>
+            <div class="toggle-row">
+              <label class="toggle-label" for="f-m3">Buzzer Ruang Rak 2</label>
+              <input type="checkbox" class="toggle" id="f-m3" x-model="form.m3" />
+            </div>
+
+            <button class="submit-btn" type="submit" :disabled="busy">
+              Simpan di server
+            </button>
+
+          </form>
+
+          <!-- Limits from device meta -->
+          <p class="section-label">Rentang nilai dari perangkat</p>
+          <div class="card">
+            <template x-for="entry in limitEntries()" :key="entry.key">
+              <div class="sensor-row">
+                <span class="sensor-label fw-600" x-text="entry.key"></span>
+                <span class="sensor-val text-muted" x-text="entry.range[0] + ' - ' + entry.range[1]"></span>
+              </div>
+            </template>
+            <p
+              class="text-muted text-sm"
+              style="padding:12px 16px"
+              x-show="limitEntries().length === 0"
+            >Belum ada data batas dari perangkat.</p>
+          </div>
+
+        </div><!-- end tab:pengaturan -->
+
+      </div><!-- container -->
+    </main>
+
+    <!-- ============ Footer ============ -->
+    <footer class="footer">
+      <div class="container">
+        LibraSense - pemantauan suhu dan kebisingan ruang perpustakaan
+      </div>
+    </footer>
+
+    <!-- ============ Toast ============ -->
+    <div
+      class="toast"
+      :class="{ show: toast, error: toast && toast.isError }"
+      role="status"
+      aria-live="polite"
+      x-text="toast ? toast.text : ''"
+    ></div>
+
+  </body>
+</html>

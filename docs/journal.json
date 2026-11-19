@@ -1,0 +1,68 @@
+{
+  "entries": [
+    {
+      "id": "001",
+      "date": "2026-11-19",
+      "file": "001-go-architecture-19-nov-2026.md",
+      "title": "Arsitektur Go dan panel Alpine",
+      "status": "done",
+      "summary": "Satu binary Go, SQLite modernc, panel Alpine tanpa build step, keputusan aktuator di server, Cloudflare Access untuk panel."
+    },
+    {
+      "id": "002",
+      "date": "2026-11-19",
+      "file": "002-firmware-push-19-nov-2026.md",
+      "title": "Firmware kirim data tanpa logika lokal",
+      "status": "in-progress",
+      "summary": "Pin map best practice ESP32, kontrak state dan command, perilaku saat offline, belum dikompilasi."
+    },
+    {
+      "id": "003",
+      "date": "2026-11-19",
+      "file": "003-deploy-vps-19-nov-2026.md",
+      "title": "Deploy VPS bersama",
+      "status": "done",
+      "summary": "Akun librasense, Podman rootful 4.9.3, port 8097, uid 10001, image dirakit di host dari binary cross compile, dua hostname tunnel, panel di Access, device tanpa Access, live 19 Nov 2026."
+    },
+    {
+      "id": "004",
+      "date": "2026-11-19",
+      "file": "004-gap-fix-19-nov-2026.md",
+      "title": "Penutupan celah audit firmware dan server",
+      "status": "done",
+      "summary": "Firmware terkompilasi 83 persen flash, backoff kiriman 5 sampai 60 detik, retensi 5000 pembacaan per perangkat, kiriman ts ganda diabaikan, LCD menampilkan -- saat sensor gagal."
+    },
+    {
+      "id": "005",
+      "date": "2026-11-19",
+      "file": "005-rangkaian-3-ruang-19-nov-2026.md",
+      "title": "Rangkaian lengkap 3 ruang",
+      "status": "done",
+      "summary": "Tiga ruang: ruang baca plus dua ruang rak. Pin DHT 23/19/13, KY-037 34/35/32, buzzer 26/25/33, relay 27, LCD 21/22. Catu daya 3V3 untuk sensor dan LCD, 5V untuk relay dan buzzer, 12V kipas. RACK_COUNT 3 dan label ruang di meta, kompilasi 83 persen flash, firmware terunggah dan panel terdeploy 19 Nov 2026."
+    },
+    {
+      "id": "006",
+      "date": "2026-11-19",
+      "file": "006-panel-alpine-start-19-nov-2026.md",
+      "title": "Panel tidak inisialisasi karena urutan Alpine",
+      "status": "done",
+      "summary": "Alpine menjalankan start lewat queueMicrotask sebelum app.js dieksekusi, sehingga panelApp undefined dan panel kosong tanpa permintaan API. app.js dimuat sebelum alpine.min.js. Panel terverifikasi merender tiga kartu, grafik, dan 13 baris sensor."
+    },
+    {
+      "id": "007",
+      "date": "2026-11-19",
+      "file": "007-ky037-presence-check-19-nov-2026.md",
+      "title": "Perbaikan deteksi hadir KY-037 ruang baca dan rak 2",
+      "status": "done",
+      "summary": "Pemeriksaan mean > 100 menandai KY-037 dengan baseline DC rendah sebagai ok=false sehingga panel menampilkan --. Logika diubah memeriksa batas rel daya. Firmware 3.1.1 diunggah, ketiga sensor suara kini ok=true."
+    },
+    {
+      "id": "008",
+      "date": "2026-11-19",
+      "file": "008-denah-maket-perpustakaan-19-nov-2026.md",
+      "title": "Denah visual maket perpustakaan pada panel",
+      "status": "done",
+      "summary": "Implementasi denah maket kardus SVG interaktif pada panel, mereplikasi tata letak Ruang Utama, Ruang Buku 1 & 2, rak buku, meja kursi, dan pintu masuk, lengkap dengan overlay telemetri waktu-nyata per ruangan."
+    }
+  ]
+}

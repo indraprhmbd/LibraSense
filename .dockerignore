@@ -1,0 +1,17 @@
+bin/
+dist/
+data/
+.env
+.git/
+.agents/
+docs/
+tmp/
+esp32/
+cmd/
+internal/
+web/
+*.log
+README.md
+AGENTS.md
+go.mod
+go.sum
