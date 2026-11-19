@@ -12,7 +12,7 @@ Dokumen ini disusun sebagai ringkasan teknis komprehensif tanpa hiasan untuk kep
   1. Memantau parameter kualitas lingkungan perpustakaan secara waktu-nyata pada 3 ruangan: satu Ruang Baca (Ruang Utama) dan dua Ruang Koleksi Rak Buku (Ruang Buku 1 dan 2).
   2. Mencegah degradasi fisik koleksi buku (jamur, pembusukan kertas, kerapuhan) akibat suhu dan kelembapan ekstrem.
   3. Menjaga kenyamanan dan ketenangan ruang baca dari polusi kebisingan suara pengunjung.
-  4. Menerapkan kontrol otomasi aktuator (kipas ventilasi 12V dan alarm buzzer aktif) secara terpusat berdasarkan logika terprogram.
+  4. Mendukung kontrol otomasi aktuator (kipas ventilasi 12V dan alarm buzzer aktif) secara terpusat berdasarkan logika terprogram, dengan arsitektur modular yang tetap berjalan penuh sebagai sistem pemantauan murni (*monitoring-only*) apabila modul aktuasi fisik ditiadakan.
   5. Menyediakan antarmuka visual berupa dasbor web responsif dengan denah maket interaktif yang merefleksikan tata letak fisik secara akurat.
 
 ---
@@ -49,18 +49,20 @@ Sistem fisik memantau 3 ruangan yang direpresentasikan dalam maket kardus 3D pro
 
 ### 3.1 Daftar Komponen
 
-| Komponen | Spesifikasi / Tipe | Jumlah | Peran Teknis |
-|---|---|:---:|---|
-| Mikrokontroler | ESP32 DOIT DevKit V1 (30-pin) | 1 unit | Pemroses utama, pembaca sinyal, pengendali pin |
-| Board Ekspansi | ESP32 Expansion Shield | 1 unit | Distribusi pin header sinyal, VCC (5V/3.3V), dan GND |
-| Sensor Suhu & Kelembapan | DHT11 Digital Module | 3 unit | Mengukur suhu (0–50 °C) dan kelembapan (20–90 % RH) |
-| Sensor Kebisingan | KY-037 Sound Microphone Module | 3 unit | Mengukur fluktuasi amplitudo gelombang suara analog |
-| Modul Relay | Relay 5V 1-Kanal (Active LOW) | 1 unit | Sakelar switching daya DC 12V untuk kipas pendingin |
-| Kipas Pendingin | DC Brushless Fan 12V | 1 unit | Sirkulasi udara pembuang panas rak koleksi |
-| Indikator Suara | Active Buzzer 5V | 3 unit | Alarm peringatan suara per ruang via driver NPN |
-| Transistor Driver | NPN (2N2222 / SS8050) | 3 unit | Penguat arus penggerak buzzer dari pin GPIO 3.3V |
-| Display Lokal | LCD Karakter 16x2 + I2C Backpack | 1 unit | Monitor teks status luring di samping maket fisik |
-| Catu Daya Sistem | Dual Power Supply (5V & 12V) | 1 paket | Adaptor 5V/2A untuk logika dan adaptor 12V/1A untuk kipas |
+Sistem dirancang modular: komponen sensor dan mikrokontroler merupakan subsistem inti pemantauan (*core sensing*), sedangkan modul aktuator (relay, kipas, buzzer) bersifat periferal opsional yang dapat dipasang atau dilepas tanpa memengaruhi kestabilan pemantauan data.
+
+| Komponen | Spesifikasi / Tipe | Jumlah | Status Implementasi | Peran Teknis |
+|---|---|:---:|:---:|---|
+| Mikrokontroler | ESP32 DOIT DevKit V1 (30-pin) | 1 unit | Inti | Pemroses utama, pembaca sinyal, transmisi data |
+| Board Ekspansi | ESP32 Expansion Shield | 1 unit | Inti | Distribusi pin header sinyal, VCC (5V/3.3V), dan GND |
+| Sensor Suhu & Kelembapan | DHT11 Digital Module | 3 unit | Inti | Mengukur suhu (0–50 °C) dan kelembapan (20–90 % RH) di 3 ruang |
+| Sensor Kebisingan | KY-037 Sound Microphone Module | 3 unit | Inti | Mengukur fluktuasi amplitudo gelombang suara analog di 3 ruang |
+| Display Lokal | LCD Karakter 16x2 + I2C Backpack | 1 unit | Inti | Monitor teks status luring di samping maket fisik |
+| Catu Daya Sistem | Dual Power Supply (5V & 12V) | 1 paket | Inti | Adaptor 5V/2A untuk logika dan adaptor 12V/1A untuk beban kipas |
+| Modul Relay | Relay 5V 1-Kanal (Active LOW) | 1 unit | Opsional / Periferal | Sakelar switching daya DC 12V untuk kipas pendingin |
+| Kipas Pendingin | DC Brushless Fan 12V | 1 unit | Opsional / Periferal | Sirkulasi udara pembuang panas rak koleksi |
+| Indikator Suara | Active Buzzer 5V | 3 unit | Opsional / Periferal | Alarm peringatan suara per ruang via driver transistor NPN |
+| Transistor Driver | NPN (2N2222 / SS8050) | 3 unit | Opsional / Periferal | Penguat arus penggerak buzzer dari pin GPIO 3.3V |
 
 ### 3.2 Alokasi Pin GPIO ESP32
 
@@ -145,17 +147,13 @@ Dasbor web LibraSense berfungsi sebagai pusat visualisasi dan kendali operator p
 
 ## 7. Kronologi Masalah Teknis dan Solusi Rekayasa
 
-1. **Konflik Pemuatan Skrip Alpine.js**:
-   - *Masalah*: Dasbor sempat tampil kosong dengan galat konsol browser `panelApp is not defined` saat aplikasi pertama kali dibuka.
-   - *Penyebab*: Skrip `alpine.min.js` dipanggil dengan atribut `defer` sebelum skrip `app.js`. Eksekusi microtask bawaan Alpine 3.14.8 memulai inisialisasi DOM sebelum fungsi `panelApp()` dideklarasikan.
-   - *Solusi*: Urutan pemuatan skrip diatur ulang dengan memuat `app.js` terlebih dahulu sebelum `alpine.min.js`.
-2. **Sensor Suara KY-037 Terbaca Rusak / Tidak Hadir (`ok=false`)**:
-   - *Masalah*: Nilai kebisingan untuk Ruang Baca dan Ruang Rak 2 menampilkan tanda `--` di panel.
-   - *Penyebab*: Modul KY-037 memiliki karakteristik offset DC titik diam yang bervariasi. Firmware versi awal mengecek `mean > 100`. Modul dengan baseline DC rendah jatuh di bawah nilai 100 sehingga dianggap tidak terpasang.
-   - *Solusi*: Logika deteksi kehadiran sensor diubah untuk memvalidasi batas sinyal rel daya (`high > 0 && low < 4095`), bukan rata-rata DC statis. Firmware 3.1.1 menyelesaikan masalah ini.
-3. **Resolusi dan Karakteristik Sensor DHT11**:
-   - *Masalah*: Grafik garis suhu terlihat datar dalam beberapa menit pengamatan.
-   - *Analisis*: DHT11 memiliki resolusi pembacaan bertahap 1.0 °C. Suhu ruangan yang relatif stabil tidak memicu lompatan nilai integer dalam interval pendek 10 menit, yang merupakan perilaku normal dari sensor tipe tersebut dan bukan indikasi data beku (*stale*).
+1. **Sensor Suara KY-037 Terbaca Rusak / Tidak Hadir (`ok=false`)**:
+   - *Masalah*: Nilai kebisingan untuk Ruang Baca dan Ruang Rak 2 sempat menampilkan tanda `--` di panel web.
+   - *Penyebab*: Modul KY-037 memiliki karakteristik offset DC titik diam yang bervariasi antar pabrikan. Firmware versi awal memeriksa ambang rata-rata statis `mean > 100`. Modul dengan baseline DC rendah jatuh di bawah nilai 100 sehingga salah terdeteksi sebagai sensor tidak terpasang.
+   - *Solusi*: Logika deteksi kehadiran sensor disempurnakan untuk memvalidasi batas sinyal rel daya (`count > 0 && high > 0 && low < 4095`), bukan rata-rata DC statis. Pembaruan firmware 3.1.1 menyelesaikan masalah ini dan seluruh sensor terbaca `ok=true`.
+2. **Resolusi dan Karakteristik Sensor DHT11**:
+   - *Masalah*: Grafik garis suhu tampak mendatar dalam beberapa menit pengamatan awal.
+   - *Analisis*: Sensor DHT11 memiliki resolusi pembacaan diskret 1.0 °C. Pada kondisi ruangan tertutup yang suhunya stabil, nilai suhu tidak mengalami fluktuasi cepat dalam rentang waktu singkat 10 menit. Hal ini merupakan karakteristik intrinsik sensor dan bukan indikasi anomali sistem atau data beku (*stale*).
 
 ---
 
