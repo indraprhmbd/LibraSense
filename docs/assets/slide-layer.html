@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body {
+    width: 1280px;
+    height: 720px;
+    background-color: #F8F9FA;
+    display: flex;
+    flex-direction: column;
+    padding: 40px 60px;
+    overflow: hidden;
+  }
+  .header {
+    margin-bottom: 24px;
+  }
+  .category {
+    font-size: 14px;
+    font-weight: 700;
+    color: #E2542C;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .category::before {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background-color: #E2542C;
+  }
+  .title {
+    font-size: 34px;
+    font-weight: 800;
+    color: #111E2E;
+  }
+  .layers-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    justify-content: center;
+  }
+  .layer-row {
+    display: flex;
+    align-items: stretch;
+    border-radius: 12px;
+    padding: 14px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.06);
+    position: relative;
+  }
+  .layer-meta {
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-right: 2px dashed rgba(0,0,0,0.12);
+    padding-right: 18px;
+    margin-right: 20px;
+  }
+  .layer-tag {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .layer-name {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .layer-cards {
+    flex: 1;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .card-item {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 68px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .card-item .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .card-item .card-desc {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+
+  /* Theme per layer */
+  .l4 { background-color: #FFF5F2; border-left: 6px solid #E2542C; }
+  .l4 .layer-tag { color: #E2542C; }
+  .l4 .layer-name { color: #8F2B11; }
+  .l4 .card-item { background: #FFFFFF; border: 1px solid #FCD9CF; }
+  .l4 .card-title { color: #A83214; }
+  .l4 .card-desc { color: #6E3B2E; }
+
+  .l3 { background-color: #1A2938; border-left: 6px solid #4F80E2; }
+  .l3 .layer-meta { border-right-color: rgba(255,255,255,0.15); }
+  .l3 .layer-tag { color: #7CA6FA; }
+  .l3 .layer-name { color: #FFFFFF; }
+  .l3 .card-item { background: #26384C; border: 1px solid #364B62; }
+  .l3 .card-title { color: #E1ECFF; }
+  .l3 .card-desc { color: #A6BBD5; }
+
+  .l2 { background-color: #F1F4F9; border-left: 6px solid #4A5D6E; }
+  .l2 .layer-tag { color: #4A5D6E; }
+  .l2 .layer-name { color: #1E293B; }
+  .l2 .card-item { background: #FFFFFF; border: 1px solid #D5DEE8; }
+  .l2 .card-title { color: #1E293B; }
+  .l2 .card-desc { color: #526071; }
+
+  .l1 { background-color: #EDF7F4; border-left: 6px solid #0D9488; }
+  .l1 .layer-tag { color: #0D9488; }
+  .l1 .layer-name { color: #0F534C; }
+  .l1 .card-item { background: #FFFFFF; border: 1px solid #BCE5DF; }
+  .l1 .card-title { color: #0F6159; }
+  .l1 .card-desc { color: #2D635D; }
+
+  /* Flow indicators on side */
+  .flow-badges {
+    position: absolute;
+    right: -42px;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    pointer-events: none;
+  }
+  .flow-badge {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 8px 4px;
+    border-radius: 4px;
+  }
+  .flow-up { background: #CCFBF1; color: #0F766E; }
+  .flow-down { background: #FFEDD5; color: #C2410C; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="category">Arsitektur Sistem IoT</div>
+  <div class="title">Empat Lapisan Arsitektur LibraSense</div>
+</div>
+
+<div class="layers-container">
+  <!-- Layer 4 -->
+  <div class="layer-row l4">
+    <div class="layer-meta">
+      <div class="layer-tag">Layer 4</div>
+      <div class="layer-name">Presentasi Pengguna</div>
+    </div>
+    <div class="layer-cards">
+      <div class="card-item">
+        <div class="card-title">Dashboard Web</div>
+        <div class="card-desc">Antarmuka reaktif berbasis Alpine.js tanpa node_modules/build step</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Denah Vektor Maket SVG</div>
+        <div class="card-desc">Visualisasi akurat tata letak maket kardus 3 ruang dengan live HUD telemetri</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Grafik Tren Suhu</div>
+        <div class="card-desc">Visualisasi grafik SVG dinamis 120 sampel data suhu per ruangan</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Panel Pengaturan & Uji</div>
+        <div class="card-desc">Formulir konfigurasi ambang (b1-b3, bs, hys) & uji manual relay/aktuator</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 3 -->
+  <div class="layer-row l3">
+    <div class="layer-meta">
+      <div class="layer-tag">Layer 3</div>
+      <div class="layer-name">Layanan Server</div>
+    </div>
+    <div class="layer-cards">
+      <div class="card-item">
+        <div class="card-title">HTTP API (Go 1.26)</div>
+        <div class="card-desc">Endpoint REST /device/* (telemetri node) & /api/* (manajemen dasbor)</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Decision Engine</div>
+        <div class="card-desc">Logika histeresis suhu, ambang kebisingan, & kendali status kipas/buzzer</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Embedded SQLite</div>
+        <div class="card-desc">Database modernc.org/sqlite mode WAL (CGO_ENABLED=0), retensi 5000 sampel</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Aset Web Embedded</div>
+        <div class="card-desc">Seluruh file web di-embed ke dalam binary melalui //go:embed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 2 -->
+  <div class="layer-row l2">
+    <div class="layer-meta">
+      <div class="layer-tag">Layer 2</div>
+      <div class="layer-name">Jaringan & Keamanan</div>
+    </div>
+    <div class="layer-cards">
+      <div class="card-item">
+        <div class="card-title">Cloudflare Tunnel</div>
+        <div class="card-desc">Koneksi ingress aman publik ke VPS bersama tanpa buka port publik</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Zero Trust Access</div>
+        <div class="card-desc">Verifikasi JWT kriptografis pada jalur dasbor web (/api/*)</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Bearer Token Device</div>
+        <div class="card-desc">Hash SHA-256 constant-time compare pada jalur ESP32 (/device/*)</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Podman Container</div>
+        <div class="card-desc">Unit systemd terisolasi di port lokal 127.0.0.1:8097 VPS</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 1 -->
+  <div class="layer-row l1">
+    <div class="layer-meta">
+      <div class="layer-tag">Layer 1</div>
+      <div class="layer-name">Perangkat Fisik (Node)</div>
+    </div>
+    <div class="layer-cards">
+      <div class="card-item">
+        <div class="card-title">ESP32 DevKit V1</div>
+        <div class="card-desc">Mikrokontroler pengambil data 5s (dumb node, tanpa ambang lokal)</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">3x DHT11 & 3x KY-037</div>
+        <div class="card-desc">Sensor suhu/kelembapan & suara analog pada ADC1 (GPIO 34, 35, 32)</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">Relay Kipas 12V</div>
+        <div class="card-desc">Aktuator pendingin rak (Active-LOW, GPIO 27) dengan indikator LED</div>
+      </div>
+      <div class="card-item">
+        <div class="card-title">LCD 16x2 I2C</div>
+        <div class="card-desc">Display monitor luring di maket bergantian suhu & kebisingan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

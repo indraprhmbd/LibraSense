@@ -275,8 +275,8 @@
               </g>
 
               <!-- HUD Data Sensor Langsung: Ruang Utama / Ruang Baca (Rak 1) -->
-              <g class="floorplan-hud" filter="url(#cardShadow)">
-                <rect x="215" y="222" width="175" height="76" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#0d9488" stroke-width="1.5" />
+              <g class="floorplan-hud" :class="{ noisy: rack(1).noisy }" filter="url(#cardShadow)">
+                <rect x="215" y="222" width="175" height="96" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#0d9488" stroke-width="1.5" />
                 <circle cx="232" cy="240" r="5" :fill="rack(1).ok ? (rack(1).hot ? '#ea580c' : '#10b981') : '#9ca3af'" />
                 <text x="244" y="244" font-size="12" font-weight="700" fill="#0f766e" x-text="rack(1).label"></text>
                 <rect x="338" y="231" width="44" height="17" rx="4" :fill="rack(1).ok ? (rack(1).hot ? '#ffedd5' : '#ccfbf1') : '#f3f4f6'" />
@@ -285,6 +285,11 @@
                 <text x="230" y="267" font-size="11" fill="#4b5563">Suhu: <tspan font-weight="700" fill="#111827" x-text="rack(1).temperature !== null ? rack(1).temperature.toFixed(1) + '°C' : '--'"></tspan></text>
                 <text x="312" y="267" font-size="11" fill="#4b5563">Lembap: <tspan font-weight="700" fill="#111827" x-text="rack(1).humidity !== null ? rack(1).humidity + '%' : '--'"></tspan></text>
                 <text x="230" y="286" font-size="11" fill="#4b5563">Kebisingan: <tspan font-weight="700" fill="#111827" x-text="rack(1).noise !== null ? rack(1).noise : '--'"></tspan><tspan x-show="rack(1).noisy" fill="#c2410c" font-weight="700"> (berisik)</tspan></text>
+                <g class="floorplan-signal" :transform="'translate(225,300)'">
+                  <rect class="floorplan-signal-bg" width="155" height="14" rx="3" />
+                  <polyline class="floorplan-signal-line" :points="noisePoints(1)" />
+                  <circle class="floorplan-signal-dot" cx="153" :cy="(12.5 - noiseLevel(1) * 11).toFixed(1)" r="2" />
+                </g>
               </g>
 
               <!-- FURNITUR RUANG BUKU 1 -->
@@ -318,8 +323,8 @@
               </g>
 
               <!-- HUD Data Sensor Langsung: Ruang Buku 1 / Ruang Rak 1 (Rak 2) -->
-              <g class="floorplan-hud" filter="url(#cardShadow)">
-                <rect x="475" y="206" width="175" height="76" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#f97316" stroke-width="1.5" />
+              <g class="floorplan-hud" :class="{ noisy: rack(2).noisy }" filter="url(#cardShadow)">
+                <rect x="475" y="206" width="175" height="96" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#f97316" stroke-width="1.5" />
                 <circle cx="492" cy="224" r="5" :fill="rack(2).ok ? (rack(2).hot ? '#ea580c' : '#10b981') : '#9ca3af'" />
                 <text x="504" y="228" font-size="12" font-weight="700" fill="#c2410c" x-text="rack(2).label"></text>
                 <rect x="598" y="215" width="44" height="17" rx="4" :fill="rack(2).ok ? (rack(2).hot ? '#ffedd5' : '#ccfbf1') : '#f3f4f6'" />
@@ -328,6 +333,11 @@
                 <text x="490" y="251" font-size="11" fill="#4b5563">Suhu: <tspan font-weight="700" fill="#111827" x-text="rack(2).temperature !== null ? rack(2).temperature.toFixed(1) + '°C' : '--'"></tspan></text>
                 <text x="572" y="251" font-size="11" fill="#4b5563">Lembap: <tspan font-weight="700" fill="#111827" x-text="rack(2).humidity !== null ? rack(2).humidity + '%' : '--'"></tspan></text>
                 <text x="490" y="270" font-size="11" fill="#4b5563">Kebisingan: <tspan font-weight="700" fill="#111827" x-text="rack(2).noise !== null ? rack(2).noise : '--'"></tspan><tspan x-show="rack(2).noisy" fill="#c2410c" font-weight="700"> (berisik)</tspan></text>
+                <g class="floorplan-signal" :transform="'translate(485,284)'">
+                  <rect class="floorplan-signal-bg" width="155" height="14" rx="3" />
+                  <polyline class="floorplan-signal-line" :points="noisePoints(2)" />
+                  <circle class="floorplan-signal-dot" cx="153" :cy="(12.5 - noiseLevel(2) * 11).toFixed(1)" r="2" />
+                </g>
               </g>
 
               <!-- FURNITUR RUANG BUKU 2 -->
@@ -361,8 +371,8 @@
               </g>
 
               <!-- HUD Data Sensor Langsung: Ruang Buku 2 / Ruang Rak 2 (Rak 3) -->
-              <g class="floorplan-hud" filter="url(#cardShadow)">
-                <rect x="475" y="430" width="175" height="76" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#6366f1" stroke-width="1.5" />
+              <g class="floorplan-hud" :class="{ noisy: rack(3).noisy }" filter="url(#cardShadow)">
+                <rect x="475" y="430" width="175" height="96" rx="8" fill="#ffffff" fill-opacity="0.95" stroke="#6366f1" stroke-width="1.5" />
                 <circle cx="492" cy="448" r="5" :fill="rack(3).ok ? (rack(3).hot ? '#ea580c' : '#10b981') : '#9ca3af'" />
                 <text x="504" y="452" font-size="12" font-weight="700" fill="#4338ca" x-text="rack(3).label"></text>
                 <rect x="598" y="439" width="44" height="17" rx="4" :fill="rack(3).ok ? (rack(3).hot ? '#ffedd5' : '#ccfbf1') : '#f3f4f6'" />
@@ -371,6 +381,11 @@
                 <text x="490" y="475" font-size="11" fill="#4b5563">Suhu: <tspan font-weight="700" fill="#111827" x-text="rack(3).temperature !== null ? rack(3).temperature.toFixed(1) + '°C' : '--'"></tspan></text>
                 <text x="572" y="475" font-size="11" fill="#4b5563">Lembap: <tspan font-weight="700" fill="#111827" x-text="rack(3).humidity !== null ? rack(3).humidity + '%' : '--'"></tspan></text>
                 <text x="490" y="494" font-size="11" fill="#4b5563">Kebisingan: <tspan font-weight="700" fill="#111827" x-text="rack(3).noise !== null ? rack(3).noise : '--'"></tspan><tspan x-show="rack(3).noisy" fill="#c2410c" font-weight="700"> (berisik)</tspan></text>
+                <g class="floorplan-signal" :transform="'translate(485,508)'">
+                  <rect class="floorplan-signal-bg" width="155" height="14" rx="3" />
+                  <polyline class="floorplan-signal-line" :points="noisePoints(3)" />
+                  <circle class="floorplan-signal-dot" cx="153" :cy="(12.5 - noiseLevel(3) * 11).toFixed(1)" r="2" />
+                </g>
               </g>
 
               <!-- Penunjuk Arah Mata Angin -->

@@ -32,7 +32,7 @@ var DefaultLimits = Limits{
 func Defaults() Values {
 	return Values{
 		B1: 30, B2: 30, B3: 30,
-		Hys: 1, Bs: 1000, Iv: 5000,
+		Hys: 1, Bs: 20, Iv: 5000,
 		Fm: 0, Bm: 7,
 		Al: true, Na: false,
 	}

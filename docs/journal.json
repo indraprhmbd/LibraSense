@@ -63,6 +63,14 @@
       "title": "Denah visual maket perpustakaan pada panel",
       "status": "done",
       "summary": "Implementasi denah maket kardus SVG interaktif pada panel, mereplikasi tata letak Ruang Utama, Ruang Buku 1 & 2, rak buku, meja kursi, dan pintu masuk, lengkap dengan overlay telemetri waktu-nyata per ruangan."
+    },
+    {
+      "id": "009",
+      "date": "2026-11-20",
+      "file": "009-jejak-sinyal-kebisingan-20-nov-2026.md",
+      "title": "Jejak sinyal kebisingan pada denah dan ambang rendah",
+      "status": "done",
+      "summary": "Kartu HUD denah menampilkan jejak sinyal kebisingan 40 sampel terakhir yang diisi dari /api/history dan pembacaan baru. Garis berubah warna saat berisik. Ambang bawaan bs turun dari 1000 menjadi 20 agar mudah terpicu."
     }
   ]
 }

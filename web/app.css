@@ -426,6 +426,37 @@ a { color: var(--teal); text-decoration: none; }
   transform: translateY(-2px);
 }
 
+/* Noise signal trace inside the floor plan HUD */
+.floorplan-signal-bg {
+  fill: #e6ecea;
+}
+
+.floorplan-signal-line {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 1.8;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.floorplan-signal-dot {
+  fill: var(--teal);
+}
+
+.floorplan-hud.noisy .floorplan-signal-line {
+  stroke: var(--warn);
+}
+
+.floorplan-hud.noisy .floorplan-signal-dot {
+  fill: var(--warn);
+  animation: floorplan-pulse 1s ease-in-out infinite;
+}
+
+@keyframes floorplan-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+
 /* ============================================================
    Chart
    ============================================================ */
