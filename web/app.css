@@ -426,35 +426,82 @@ a { color: var(--teal); text-decoration: none; }
   transform: translateY(-2px);
 }
 
-/* Noise signal trace inside the floor plan HUD */
+/* Noise signal strip inside the floor plan HUD: a closed water-like wave
+   that scrolls, with the amplitude driven by --amp from app.js. */
 .floorplan-signal-bg {
   fill: #e6ecea;
 }
 
-.floorplan-signal-line {
+.signal-wave-line {
   fill: none;
   stroke: var(--teal);
-  stroke-width: 1.8;
+  stroke-width: 1.7;
   stroke-linejoin: round;
   stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scaleY(var(--amp, 0.4));
+  transition: transform 0.6s ease-out;
 }
 
-.floorplan-signal-dot {
-  fill: var(--teal);
+.signal-wave-scroll {
+  animation: signal-scroll 3.4s linear infinite;
 }
 
-.floorplan-hud.noisy .floorplan-signal-line {
+@keyframes signal-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-40px); }
+}
+
+.floorplan-hud.noisy .signal-wave-scroll {
+  animation-duration: 1.1s;
+}
+
+.floorplan-hud.noisy .signal-wave-line {
   stroke: var(--warn);
+  stroke-width: 2.1;
 }
 
-.floorplan-hud.noisy .floorplan-signal-dot {
-  fill: var(--warn);
-  animation: floorplan-pulse 1s ease-in-out infinite;
+/* Ripples spreading from the noise sensor in each room, like water.
+   Rings grow outward and fade, faster and brighter while the room is noisy. */
+.ripple-layer {
+  pointer-events: none;
 }
 
-@keyframes floorplan-pulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.25; }
+.ripple {
+  fill: none;
+  stroke: var(--teal);
+  stroke-width: 2.4;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ripple-out 5.4s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+
+.ripple.r2 { animation-delay: 1.8s; }
+.ripple.r3 { animation-delay: 3.6s; }
+
+@keyframes ripple-out {
+  0%   { transform: scale(0.2); opacity: 0.62; }
+  50%  { opacity: 0.34; }
+  100% { transform: scale(6); opacity: 0; }
+}
+
+.ripple-layer.noisy .ripple {
+  stroke: var(--warn);
+  stroke-width: 2.6;
+  animation-duration: 2.4s;
+}
+
+.ripple-layer.noisy .r2 { animation-delay: 0.8s; }
+.ripple-layer.noisy .r3 { animation-delay: 1.6s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .signal-wave-scroll,
+  .ripple {
+    animation: none;
+  }
+  .ripple { opacity: 0.22; }
 }
 
 /* ============================================================

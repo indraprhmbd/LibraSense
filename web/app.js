@@ -61,9 +61,6 @@ const store = (() => {
   return {
     overview: null,
     history:  [],
-    // Rolling noise trace per rack, drawn as a signal line in the floor plan.
-    noiseTrace: { 1: [], 2: [], 3: [] },
-    _noiseSeeded: false,
     error:    '',
     busy:     false,
     toast:    null,
@@ -125,53 +122,10 @@ const store = (() => {
     setOverview(data) {
       this.overview = data;
       this.error = '';
-      this.pushNoise();
     },
 
     setHistory(data) {
       this.history = Array.isArray(data.readings) ? data.readings : [];
-      this.seedNoise();
-    },
-
-    /**
-     * Append the newest noise value per rack to the trace buffer.
-     * Skipped when the sensor is missing so the line does not drop to zero.
-     */
-    pushNoise() {
-      const sensors = this.sensors();
-      for (const rack of [1, 2, 3]) {
-        const s = sensors.find(
-          (x) => x.type === 'noise' && x.rack === rack && x.ok !== false
-        );
-        if (!s || typeof s.value !== 'number') continue;
-        const buf = this.noiseTrace[rack];
-        buf.push(s.value);
-        if (buf.length > 40) buf.shift();
-      }
-    },
-
-    /** Fill the trace from stored history once, so the line is not empty on load. */
-    seedNoise() {
-      if (this._noiseSeeded || !this.history.length) return;
-      this._noiseSeeded = true;
-      const rows = this.history.slice(-40);
-      rows.forEach((row, i) => {
-        const sensors = Array.isArray(row.sensors) ? row.sensors : [];
-        for (const rack of [1, 2, 3]) {
-          const s = sensors.find(
-            (x) => x.type === 'noise' && x.rack === rack && x.ok !== false
-          );
-          if (!s || typeof s.value !== 'number') continue;
-          if (!this.noiseTrace[rack][i]) this.noiseTrace[rack][i] = null;
-          this.noiseTrace[rack][i] = s.value;
-        }
-      });
-      for (const rack of [1, 2, 3]) {
-        this.noiseTrace[rack] = this.noiseTrace[rack].filter(
-          (v) => typeof v === 'number'
-        )
-          .slice(-40);
-      }
     },
 
     setError(msg) {
@@ -489,32 +443,16 @@ function panelApp() {
     },
 
     /**
-     * Polyline points for the noise signal strip drawn inside a floor plan HUD.
-     * Coordinates are local to a 155x14 box; the caller translates the group.
+     * Amplitude 0..1 for the noise wave strip, derived from the latest reading.
+     * The KY-037 reports peak-to-peak ADC counts, so 120 is a loud ceiling and
+     * 0.18 keeps an idle room readable as a flat but still moving line.
      */
-    noisePoints(num) {
-      const buf = this.noiseTrace[num] || [];
-      if (buf.length < 2) return '';
-      const W = 155;
-      const H = 14;
-      const pad = 1;
-      const peak = Math.max(60, ...buf);
-      const step = W / (buf.length - 1);
-      return buf
-        .map((v, i) => {
-          const x = i * step;
-          const y = H - pad - (v / peak) * (H - pad * 2);
-          return x.toFixed(1) + ',' + y.toFixed(1);
-        })
-        .join(' ');
-    },
-
-    /** Normalized position of the latest noise sample, 0 to 1, for the pulse dot. */
-    noiseLevel(num) {
-      const buf = this.noiseTrace[num] || [];
-      if (!buf.length) return 0;
-      const peak = Math.max(60, ...buf);
-      return Math.min(1, buf[buf.length - 1] / peak);
+    noiseAmp(num) {
+      const s = this.sensors().find(
+        (x) => x.type === 'noise' && x.rack === num && x.ok !== false
+      );
+      if (!s || typeof s.value !== 'number') return 0.18;
+      return Math.max(0.18, Math.min(1, s.value / 120));
     },
 
     barWidth(temp) {

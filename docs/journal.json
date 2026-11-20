@@ -71,6 +71,14 @@
       "title": "Jejak sinyal kebisingan pada denah dan ambang rendah",
       "status": "done",
       "summary": "Kartu HUD denah menampilkan jejak sinyal kebisingan 40 sampel terakhir yang diisi dari /api/history dan pembacaan baru. Garis berubah warna saat berisik. Ambang bawaan bs turun dari 1000 menjadi 20 agar mudah terpicu."
+    },
+    {
+      "id": "010",
+      "date": "2026-11-20",
+      "file": "010-gelombang-riak-kebisingan-20-nov-2026.md",
+      "title": "Gelombang dan riak kebisingan pada denah",
+      "status": "done",
+      "summary": "Strip kebisingan pada HUD menjadi gelombang sinus bergeser dengan amplitudo dari noiseAmp(). Tiap ruang menampilkan tiga riak konsentris seperti air yang dipotong dinding ruang. Warna dan tempo berubah saat berisik. Animasi dimatikan pada prefers-reduced-motion."
     }
   ]
 }
